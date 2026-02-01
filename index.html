@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#151517">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haber Asistanı</title>
+
+<style>
+* { box-sizing: border-box; }
+body {
+  margin:0; font-family:-apple-system,BlinkMacSystemFont,Arial;
+  background:#0f0f10; color:#fff; overflow-x:hidden;
+}
+body.light { background:#f5f5f7; color:#111; }
+
+/* HEADER */
+header{
+  position:sticky; top:0; z-index:100; height:56px;
+  background:#151517; display:flex; align-items:center; padding:0 14px;
+}
+body.light header{ background:#fff; }
+header h1{ flex:1; text-align:center; font-size:16px; }
+#menuBtn{ background:none; border:none; color:inherit; font-size:22px; }
+
+/* MENU */
+#menu{
+  position:fixed; top:0; left:-260px; width:260px; height:100%;
+  background:#1c1c1e; padding:16px; transition:left .25s ease; z-index:200;
+}
+#menu.open{ left:0; }
+body.light #menu{ background:#fff; }
+.menu-item{
+  padding:10px; border-radius:10px; margin-bottom:6px; cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.menu-item.active{ background:#1d9bf0; color:#fff; }
+.count{ font-size:12px; opacity:.8; }
+
+/* OVERLAY */
+#overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; z-index:150;
+}
+#overlay.show{ display:block; }
+
+/* LOADER */
+#loader{
+  height:200px; display:flex; flex-direction:column; justify-content:center; align-items:center;
+}
+.circle{
+  width:60px; height:60px; border-radius:50%;
+  border:6px solid #333; border-top-color:#1d9bf0;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg);} }
+
+/* CONTENT */
+main{ padding:14px; }
+
+/* CARD */
+.card{
+  background:#1c1c1e; border-radius:14px; padding:14px; margin-bottom:12px;
+  border-left:4px solid transparent;
+}
+body.light .card{ background:#fff; }
+.card.free{ border-left-color:#2ecc71; }
+.card.deal{ border-left-color:#f39c12; }
+.card.news{ border-left-color:#e74c3c; }
+.card.read{ opacity:.55; }
+
+.card img{
+  width:100%; border-radius:10px; margin:8px 0; display:block;
+}
+
+.source{ font-size:12px; color:#888; }
+.title{ font-size:15px; font-weight:600; margin:6px 0; }
+.desc{ font-size:14px; color:#ccc; }
+body.light .desc{ color:#333; }
+
+.actions{ display:flex; gap:10px; margin-top:8px; }
+.actions button{
+  background:#2c2c2e; border:none; color:#fff; padding:6px 10px; border-radius:8px;
+}
+.actions button.active{ background:#1d9bf0; }
+
+/* TOGGLE */
+.toggle{ margin-top:12px; display:flex; justify-content:space-between; }
+</style>
+</head>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js");
+}
+</script>
+
+
+<body>
+
+<header>
+  <button id="menuBtn">☰</button>
+  <h1>Akış</h1>
+</header>
+
+<nav id="menu">
+  <div class="menu-item active" data-filter="all">📰 Akış <span id="c-all" class="count">0</span></div>
+  <div class="menu-item" data-filter="global">🌍 Global <span id="c-global" class="count">0</span></div>
+  <div class="menu-item" data-filter="turkey">🇹🇷 Türkiye <span id="c-turkey" class="count">0</span></div>
+  <div class="menu-item" data-filter="games">🎮 Oyun <span id="c-games" class="count">0</span></div>
+
+  <div class="toggle">
+    🌙 Koyu Mod
+    <input type="checkbox" id="darkToggle">
+  </div>
+</nav>
+
+<div id="overlay"></div>
+
+<main>
+  <div id="loader">
+    <div class="circle"></div>
+    <div id="percent">0%</div>
+  </div>
+  <div id="news" style="display:none;"></div>
+</main>
+
+<script src="app.js"></script>
+
+<script>
+const menuBtn=document.getElementById("menuBtn");
+const menu=document.getElementById("menu");
+const overlay=document.getElementById("overlay");
+menuBtn.onclick=()=>{menu.classList.add("open");overlay.classList.add("show");};
+overlay.onclick=()=>{menu.classList.remove("open");overlay.classList.remove("show");};
+
+/* SWIPE */
+let sx=null;
+document.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
+document.addEventListener("touchend",e=>{
+  if(sx===null) return;
+  const dx=e.changedTouches[0].clientX-sx;
+  if(dx>70){menu.classList.add("open");overlay.classList.add("show");}
+  if(dx<-70){menu.classList.remove("open");overlay.classList.remove("show");}
+  sx=null;
+});
+</script>
+
+</body>
+</html>

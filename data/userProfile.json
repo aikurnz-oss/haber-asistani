@@ -1,0 +1,23 @@
+{
+  "userId": "ali",
+  "interests": {
+    "war": 0.9,
+    "politics": 0.8,
+    "science": 0.7,
+    "health": 0.6,
+    "technology": 0.7,
+    "economy": 0.8,
+    "games": 0.4,
+    "sports": 0.3,
+    "entertainment": 0.2
+  },
+  "biasControl": {
+    "echoChamberLimit": 0.6,
+    "diversityBoost": 0.2
+  },
+  "behavior": {
+    "clickWeight": 1.0,
+    "readTimeWeight": 1.2,
+    "skipPenalty": 0.5
+  }
+}
