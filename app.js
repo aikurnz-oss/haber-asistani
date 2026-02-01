@@ -45,16 +45,26 @@ function saveCache(items){
 /* ================= ACTIONS ================= */
 window.like = id => {
   const u = getUser();
-  u.likes[id] = !u.likes[id];
-  if (u.likes[id]) delete u.dislikes[id];
+  if (u.likes[id]) {
+    delete u.likes[id];
+  } else {
+    u.likes[id] = true;
+    delete u.dislikes[id];
+  }
   saveUser(u);
+  updateActionUI(id);
 };
 
 window.dislike = id => {
   const u = getUser();
-  u.dislikes[id] = !u.dislikes[id];
-  if (u.dislikes[id]) delete u.likes[id];
+  if (u.dislikes[id]) {
+    delete u.dislikes[id];
+  } else {
+    u.dislikes[id] = true;
+    delete u.likes[id];
+  }
   saveUser(u);
+  updateActionUI(id);
 };
 
 window.openCard = (id, link) => {
@@ -64,6 +74,14 @@ window.openCard = (id, link) => {
   document.querySelector(`[data-id="${id}"]`)?.classList.add("read");
   window.open(link, "_blank");
 };
+
+function updateActionUI(id){
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const u = getUser();
+  card.querySelector(".like")?.classList.toggle("active", !!u.likes[id]);
+  card.querySelector(".dislike")?.classList.toggle("active", !!u.dislikes[id]);
+}
 
 /* ================= FILTER ================= */
 menuItems.forEach(item=>{
@@ -94,15 +112,7 @@ function updateCounts(){
   ).length;
 }
 
-/* ================= LOADER CONTROL ================= */
-function showLoader(){
-  loader.style.display = "flex";
-  newsRoot.style.display = "none";
-}
-function hideLoader(){
-  loader.style.display = "none";
-  newsRoot.style.display = "block";
-}
+/* ================= LOADER ================= */
 function smoothTo100(){
   let p = Number(percentEl.innerText.replace("%","")) || 90;
   const step = () => {
@@ -119,17 +129,14 @@ function smoothTo100(){
 async function load(){
   const cached = getCache();
 
-  // 1) Cache varsa: loader gösterme
   if (cached.length) {
     ALL_ITEMS = cached;
     updateCounts();
-    hideLoader();
+    loader.style.display = "none";
+    newsRoot.style.display = "block";
     applyFilter();
-  } else {
-    showLoader();
   }
 
-  // 2) Loader % → 90 (deterministik)
   let p = 0;
   const timer = setInterval(()=>{
     if (p < 90) {
@@ -142,7 +149,6 @@ async function load(){
     const res = await fetch("/.netlify/functions/daily");
     const data = await res.json();
     clearInterval(timer);
-
     smoothTo100();
 
     const incoming = data.items || [];
@@ -156,11 +162,15 @@ async function load(){
       applyFilter();
     }
 
-    setTimeout(hideLoader, 300);
+    setTimeout(()=>{
+      loader.style.display="none";
+      newsRoot.style.display="block";
+    },300);
 
   } catch {
     clearInterval(timer);
-    hideLoader();
+    loader.style.display="none";
+    newsRoot.style.display="block";
   }
 }
 
@@ -172,6 +182,8 @@ function render(items){
   items.forEach(it=>{
     const div = document.createElement("div");
     const isRead = !!u.read[it.link];
+    const liked = !!u.likes[it.link];
+    const disliked = !!u.dislikes[it.link];
 
     div.className =
       "card "+
@@ -188,8 +200,8 @@ function render(items){
       ${img}
       <div class="desc">${it.summary || ""}</div>
       <div class="actions">
-        <button onclick="like('${it.link}')">👍</button>
-        <button onclick="dislike('${it.link}')">👎</button>
+        <button class="like ${liked?"active":""}" onclick="like('${it.link}')">👍</button>
+        <button class="dislike ${disliked?"active":""}" onclick="dislike('${it.link}')">👎</button>
         <button onclick="openCard('${it.link}','${it.link}')">Oku</button>
       </div>
     `;
